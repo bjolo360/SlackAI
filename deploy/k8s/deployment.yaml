@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slackai-sync
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: slackai-sync
+  template:
+    metadata:
+      labels:
+        app: slackai-sync
+    spec:
+      containers:
+        - name: slackai-sync
+          image: your-registry/slackai-sync:latest
+          env:
+            - name: SLACK_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: slackai-secrets
+                  key: slack-bot-token
+            - name: DESIRED_CHANNELS
+              value: "alerts,incidents"
+            - name: SYNC_INTERVAL_SECONDS
+              value: "300"
+            - name: LOG_LEVEL
+              value: "INFO"
+          ports:
+            - containerPort: 8000
+              name: metrics
