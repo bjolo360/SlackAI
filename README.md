@@ -105,6 +105,7 @@ The intent handling lives in `SlackListsCli/Services/NaturalLanguageRouter.cs`. 
 - **Invalid token**: Ensure `SLACK_BOT_TOKEN` is set and the app is installed.
 - **Missing scopes**: Add the required scopes and reinstall the app.
 - **List not found**: Ensure the list name matches exactly (case-insensitive).
+- **unknown_method**: Your workspace may not have the Slack Lists API enabled or the app is missing access to Lists.
 
 ## License
 
