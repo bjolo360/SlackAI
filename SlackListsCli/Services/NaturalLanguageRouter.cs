@@ -1,38 +1,38 @@
-using System.Text.RegularExpressions;
 using SlackListsCli.Models;
 
 namespace SlackListsCli.Services;
 
 public sealed class NaturalLanguageRouter
 {
-    private static readonly Regex UnresolvedRegex = new(
-        "how many unresolved items are there in the list (?<list>.+)",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-    private static readonly Regex PersonRegex = new(
-        "what is (person )?(?<person>.+) working on",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
     private readonly SlackApiClient _slackApiClient;
+    private readonly OpenAiClient _openAiClient;
 
-    public NaturalLanguageRouter(SlackApiClient slackApiClient)
+    public NaturalLanguageRouter(SlackApiClient slackApiClient, OpenAiClient openAiClient)
     {
         _slackApiClient = slackApiClient;
+        _openAiClient = openAiClient;
     }
 
     public async Task<string> RouteAsync(string question)
     {
-        if (TryParseUnresolved(question, out var listName))
+        QuestionIntent intent;
+        try
         {
-            return await HandleUnresolvedAsync(listName);
+            intent = await _openAiClient.ClassifyQuestionAsync(question);
+        }
+        catch (Exception ex)
+        {
+            return $"OpenAI error while interpreting the question: {ex.Message}";
         }
 
-        if (TryParsePerson(question, out var personName))
+        return intent.Intent switch
         {
-            return await HandlePersonAsync(personName);
-        }
-
-        return "I couldn't understand that question. Try asking about unresolved list items or what someone is working on.";
+            "unresolved_count" when !string.IsNullOrWhiteSpace(intent.ListName)
+                => await HandleUnresolvedAsync(intent.ListName),
+            "person_assignments" when !string.IsNullOrWhiteSpace(intent.PersonName)
+                => await HandlePersonAsync(intent.PersonName),
+            _ => "I couldn't understand that question. Try asking about unresolved list items or what someone is working on."
+        };
     }
 
     private async Task<string> HandleUnresolvedAsync(string listName)
@@ -105,29 +105,5 @@ public sealed class NaturalLanguageRouter
         return $"{user.RealName} is working on:\n{string.Join("\n", lines)}";
     }
 
-    private static bool TryParseUnresolved(string question, out string listName)
-    {
-        var match = UnresolvedRegex.Match(question);
-        if (match.Success)
-        {
-            listName = match.Groups["list"].Value.Trim();
-            return true;
-        }
-
-        listName = string.Empty;
-        return false;
-    }
-
-    private static bool TryParsePerson(string question, out string personName)
-    {
-        var match = PersonRegex.Match(question);
-        if (match.Success)
-        {
-            personName = match.Groups["person"].Value.Trim();
-            return true;
-        }
-
-        personName = string.Empty;
-        return false;
-    }
+    
 }

@@ -1,6 +1,6 @@
 # Slack Lists CLI (C#)
 
-A command-line tool built in C# that connects to your Slack workspace and answers natural-language questions about Slack Lists, such as:
+A command-line tool built in C# that connects to your Slack workspace and uses ChatGPT to answer natural-language questions about Slack Lists, such as:
 
 - "How many unresolved items are there in the list Product Launch"
 - "What is person Y working on"
@@ -9,7 +9,7 @@ The CLI uses Slack Web API calls and a lightweight natural-language router to ma
 
 ## Features
 
-- Natural-language questions for common list queries.
+- ChatGPT-powered natural-language questions for common list queries.
 - Connects to your Slack workspace using a bot token.
 - Filters unresolved list items.
 - Shows what a person is working on across all lists.
@@ -19,6 +19,7 @@ The CLI uses Slack Web API calls and a lightweight natural-language router to ma
 - [.NET 8 SDK](https://dotnet.microsoft.com/download) installed locally.
 - A Slack app installed in your workspace with a bot token.
 - Slack Lists enabled for your workspace.
+- An OpenAI API key for ChatGPT access.
 
 ## Slack App Setup
 
@@ -36,6 +37,13 @@ Set the Slack bot token in your environment:
 
 ```bash
 export SLACK_BOT_TOKEN="xoxb-your-token"
+```
+
+Set the OpenAI API key and (optionally) choose a model:
+
+```bash
+export OPENAI_API_KEY="your-openai-api-key"
+export OPENAI_MODEL="gpt-4o-mini"
 ```
 
 Optional: provide the workspace domain if you want to include it in future extensions:
@@ -76,7 +84,7 @@ Ada Lovelace is working on:
 
 ## How It Works
 
-The CLI parses questions using regular expressions and maps them to Slack API calls:
+The CLI sends your question to ChatGPT to identify the intent and then maps it to Slack API calls:
 
 - `lists.list` to resolve list names.
 - `lists.items` to fetch list items and count unresolved items.
@@ -90,7 +98,7 @@ For "what is person X working on", the tool:
 
 ## Extending the Natural Language Router
 
-The intent handling lives in `SlackListsCli/Services/NaturalLanguageRouter.cs`. Add new regex patterns and handlers to support more questions.
+The intent handling lives in `SlackListsCli/Services/NaturalLanguageRouter.cs`. Update the ChatGPT prompt and add new handlers to support more questions.
 
 ## Troubleshooting
 

@@ -8,6 +8,13 @@ if (!settings.IsValid)
     return 1;
 }
 
+var openAiSettings = OpenAiSettings.FromEnvironment();
+if (!openAiSettings.IsValid)
+{
+    Console.Error.WriteLine("Missing OpenAI configuration. Set OPENAI_API_KEY and optionally OPENAI_MODEL.");
+    return 1;
+}
+
 var question = QuestionInput.FromArgs(args);
 if (string.IsNullOrWhiteSpace(question.Question))
 {
@@ -18,13 +25,19 @@ if (string.IsNullOrWhiteSpace(question.Question))
     return 0;
 }
 
-var httpClient = new HttpClient
+var slackHttpClient = new HttpClient
 {
     BaseAddress = new Uri("https://slack.com/api/")
 };
 
-var slackClient = new SlackApiClient(httpClient, settings);
-var router = new NaturalLanguageRouter(slackClient);
+var openAiHttpClient = new HttpClient
+{
+    BaseAddress = new Uri("https://api.openai.com/v1/")
+};
+
+var slackClient = new SlackApiClient(slackHttpClient, settings);
+var openAiClient = new OpenAiClient(openAiHttpClient, openAiSettings);
+var router = new NaturalLanguageRouter(slackClient, openAiClient);
 
 var response = await router.RouteAsync(question.Question);
 Console.WriteLine(response);
