@@ -42,15 +42,8 @@ export SLACK_BOT_TOKEN="xoxb-your-token"
 Optional: override the Slack Lists API method names if your workspace uses a different namespace:
 
 ```bash
-export SLACK_LISTS_LIST_METHOD="slackLists.items.list"
-export SLACK_LISTS_ITEMS_METHOD="slackLists.items.info"
-```
-
-If your Lists API requires list IDs, provide a default or a name-to-id mapping:
-
-```bash
-export SLACK_DEFAULT_LIST_ID="L1234567890"
-export SLACK_LIST_ID_MAP='{"Product Launch":"L1234567890","Analytics":"L2345678901"}'
+export SLACK_LISTS_LIST_METHOD="slackLists.list"
+export SLACK_LISTS_ITEMS_METHOD="slackLists.items.list"
 ```
 
 Set the OpenAI API key and (optionally) choose a model:
@@ -100,8 +93,8 @@ Ada Lovelace is working on:
 
 The CLI sends your question to ChatGPT to identify the intent and then maps it to Slack API calls:
 
-- `slackLists.items.list` to resolve list names.
-- `slackLists.items.info` to fetch list items and count unresolved items.
+- `slackLists.list` to resolve list names.
+- `slackLists.items.list` to fetch list items and count unresolved items.
 - `users.list` to resolve user names.
 
 For "what is person X working on", the tool:
@@ -121,7 +114,6 @@ The intent handling lives in `SlackListsCli/Services/NaturalLanguageRouter.cs`. 
 - **List not found**: Ensure the list name matches exactly (case-insensitive).
 - **unknown_method**: Your workspace may not have the Slack Lists API enabled or the app is missing access to Lists.
 - **invalid_arguments**: Check the error details from Slack (the CLI will now show any response metadata) and verify you are using the correct method names for your workspace.
-- **missing list_id**: Set `SLACK_LIST_ID_MAP` (or `SLACK_DEFAULT_LIST_ID`) because some Lists endpoints require a list ID instead of listing all lists by name.
 
 ## License
 
