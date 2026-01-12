@@ -90,9 +90,18 @@ public sealed class SlackApiClient
         if (apiResponse is { Ok: false })
         {
             var error = apiResponse.Error ?? "Unknown error";
+            var metadata = apiResponse.ResponseMetadata;
             if (string.Equals(error, "unknown_method", StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("Slack API error: unknown_method. Your workspace may not have the Slack Lists API enabled, or the app is missing access to Lists.");
+            }
+
+            if (string.Equals(error, "invalid_arguments", StringComparison.OrdinalIgnoreCase))
+            {
+                var details = metadata?.Messages.Count > 0
+                    ? $" Details: {string.Join(" ", metadata.Messages)}"
+                    : string.Empty;
+                throw new InvalidOperationException($"Slack API error: invalid_arguments.{details}");
             }
 
             throw new InvalidOperationException($"Slack API error: {error}.");

@@ -9,6 +9,15 @@ public abstract record SlackApiResponseBase
 
     [JsonPropertyName("error")]
     public string? Error { get; init; }
+
+    [JsonPropertyName("response_metadata")]
+    public SlackResponseMetadata? ResponseMetadata { get; init; }
+}
+
+public sealed record SlackResponseMetadata
+{
+    [JsonPropertyName("messages")]
+    public List<string> Messages { get; init; } = new();
 }
 
 public sealed record SlackListListResponse : SlackApiResponseBase
