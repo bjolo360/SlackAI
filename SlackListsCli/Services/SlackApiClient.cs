@@ -26,6 +26,19 @@ public sealed class SlackApiClient
         return response.Lists;
     }
 
+    public bool TryResolveListId(string listName, out string listId)
+    {
+        if (_settings.ListIdMap.TryGetValue(listName, out listId))
+        {
+            return true;
+        }
+
+        listId = string.Empty;
+        return false;
+    }
+
+    public string DefaultListId => _settings.DefaultListId;
+
     public async Task<IReadOnlyList<SlackListItem>> GetListItemsAsync(string listId)
     {
         var response = await CallApiAsync<SlackListItemsResponse>(_settings.ListsItemsMethod, new Dictionary<string, string>

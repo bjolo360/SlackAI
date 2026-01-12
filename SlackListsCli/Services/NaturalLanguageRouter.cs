@@ -40,10 +40,21 @@ public sealed class NaturalLanguageRouter
         SlackList? list;
         try
         {
+            if (_slackApiClient.TryResolveListId(listName, out var mappedListId))
+            {
+                return await BuildUnresolvedResponseAsync(listName, mappedListId);
+            }
+
             list = await _slackApiClient.FindListByNameAsync(listName);
         }
         catch (Exception ex)
         {
+            if (ex.Message.Contains("invalid_arguments", StringComparison.OrdinalIgnoreCase)
+                && ex.Message.Contains("list_id", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Slack Lists API requires a list_id. Set SLACK_LIST_ID_MAP to map list names to IDs or provide SLACK_DEFAULT_LIST_ID.";
+            }
+
             return $"Slack API error while looking up lists: {ex.Message}";
         }
 
@@ -52,18 +63,7 @@ public sealed class NaturalLanguageRouter
             return $"I couldn't find a list named '{listName}'.";
         }
 
-        IReadOnlyList<SlackListItem> items;
-        try
-        {
-            items = await _slackApiClient.GetListItemsAsync(list.Id);
-        }
-        catch (Exception ex)
-        {
-            return $"Slack API error while loading list items: {ex.Message}";
-        }
-
-        var unresolved = items.Count(item => !item.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase));
-        return $"There are {unresolved} unresolved items in '{list.Name}'.";
+        return await BuildUnresolvedResponseAsync(list.Name, list.Id);
     }
 
     private async Task<string> HandlePersonAsync(string personName)
@@ -90,6 +90,12 @@ public sealed class NaturalLanguageRouter
         }
         catch (Exception ex)
         {
+            if (ex.Message.Contains("invalid_arguments", StringComparison.OrdinalIgnoreCase)
+                && ex.Message.Contains("list_id", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Slack Lists API requires list_id values to fetch list items. Set SLACK_LIST_ID_MAP with list names to IDs to enable per-user lookups.";
+            }
+
             return $"Slack API error while loading assignments: {ex.Message}";
         }
 
@@ -103,6 +109,22 @@ public sealed class NaturalLanguageRouter
             .ToList();
 
         return $"{user.RealName} is working on:\n{string.Join("\n", lines)}";
+    }
+
+    private async Task<string> BuildUnresolvedResponseAsync(string listName, string listId)
+    {
+        IReadOnlyList<SlackListItem> items;
+        try
+        {
+            items = await _slackApiClient.GetListItemsAsync(listId);
+        }
+        catch (Exception ex)
+        {
+            return $"Slack API error while loading list items: {ex.Message}";
+        }
+
+        var unresolved = items.Count(item => !item.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase));
+        return $"There are {unresolved} unresolved items in '{listName}'.";
     }
 
     
