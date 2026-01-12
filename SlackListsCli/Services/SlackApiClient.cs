@@ -22,8 +22,26 @@ public sealed class SlackApiClient
 
     public async Task<IReadOnlyList<SlackList>> GetListsAsync()
     {
-        var response = await CallApiAsync<SlackListListResponse>(_settings.ListsListMethod);
-        return response.Lists;
+        SlackApiException? lastError = null;
+        foreach (var method in GetListMethodCandidates())
+        {
+            try
+            {
+                var response = await CallApiAsync<SlackListListResponse>(method);
+                return response.Lists;
+            }
+            catch (SlackApiException ex) when (IsMissingListIdError(ex))
+            {
+                lastError = ex;
+            }
+        }
+
+        if (lastError is not null)
+        {
+            throw lastError;
+        }
+
+        return Array.Empty<SlackList>();
     }
 
     public async Task<IReadOnlyList<SlackListItem>> GetListItemsAsync(string listId)
@@ -90,24 +108,47 @@ public sealed class SlackApiClient
         if (apiResponse is { Ok: false })
         {
             var error = apiResponse.Error ?? "Unknown error";
-            var metadata = apiResponse.ResponseMetadata;
-            if (string.Equals(error, "unknown_method", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException("Slack API error: unknown_method. Your workspace may not have the Slack Lists API enabled, or the app is missing access to Lists.");
-            }
+            var messages = apiResponse.ResponseMetadata?.Messages ?? new List<string>();
+            var details = messages.Count > 0
+                ? $" Details: {string.Join(" ", messages)}"
+                : string.Empty;
 
-            if (string.Equals(error, "invalid_arguments", StringComparison.OrdinalIgnoreCase))
+            var message = error switch
             {
-                var details = metadata?.Messages.Count > 0
-                    ? $" Details: {string.Join(" ", metadata.Messages)}"
-                    : string.Empty;
-                throw new InvalidOperationException($"Slack API error: invalid_arguments.{details}");
-            }
+                "unknown_method" => "Slack API error: unknown_method. Your workspace may not have the Slack Lists API enabled, or the app is missing access to Lists.",
+                "invalid_arguments" => $"Slack API error: invalid_arguments.{details}",
+                _ => $"Slack API error: {error}.{details}"
+            };
 
-            throw new InvalidOperationException($"Slack API error: {error}.");
+            throw new SlackApiException(message, error, messages);
         }
 
         return result;
+    }
+
+    private IEnumerable<string> GetListMethodCandidates()
+    {
+        var methods = new[]
+        {
+            _settings.ListsListMethod,
+            "slackLists.list",
+            "lists.list"
+        };
+
+        return methods.Where(method => !string.IsNullOrWhiteSpace(method))
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static bool IsMissingListIdError(SlackApiException ex)
+    {
+        if (!string.Equals(ex.Error, "invalid_arguments", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return ex.Messages.Any(message =>
+            message.Contains("missing required field: list_id", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("missing required field: id", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string BuildRequestUri(string method, IDictionary<string, string>? query)
