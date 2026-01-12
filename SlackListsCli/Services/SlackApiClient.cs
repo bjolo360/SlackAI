@@ -22,13 +22,13 @@ public sealed class SlackApiClient
 
     public async Task<IReadOnlyList<SlackList>> GetListsAsync()
     {
-        var response = await CallApiAsync<SlackListListResponse>("lists.list");
+        var response = await CallApiAsync<SlackListListResponse>(_settings.ListsListMethod);
         return response.Lists;
     }
 
     public async Task<IReadOnlyList<SlackListItem>> GetListItemsAsync(string listId)
     {
-        var response = await CallApiAsync<SlackListItemsResponse>("lists.items", new Dictionary<string, string>
+        var response = await CallApiAsync<SlackListItemsResponse>(_settings.ListsItemsMethod, new Dictionary<string, string>
         {
             ["list_id"] = listId
         });

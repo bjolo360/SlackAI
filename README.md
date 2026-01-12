@@ -39,6 +39,13 @@ Set the Slack bot token in your environment:
 export SLACK_BOT_TOKEN="xoxb-your-token"
 ```
 
+Optional: override the Slack Lists API method names if your workspace uses a different namespace (for example, `slackLists.items.list` and `slackLists.items.info`):
+
+```bash
+export SLACK_LISTS_LIST_METHOD="slackLists.items.list"
+export SLACK_LISTS_ITEMS_METHOD="slackLists.items.info"
+```
+
 Set the OpenAI API key and (optionally) choose a model:
 
 ```bash
