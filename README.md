@@ -39,13 +39,6 @@ Set the Slack bot token in your environment:
 export SLACK_BOT_TOKEN="xoxb-your-token"
 ```
 
-Optional: override the Slack Lists API method names if your workspace uses a different namespace:
-
-```bash
-export SLACK_LISTS_LIST_METHOD="slackLists.list"
-export SLACK_LISTS_ITEMS_METHOD="slackLists.items.list"
-```
-
 Set the OpenAI API key and (optionally) choose a model:
 
 ```bash
@@ -113,7 +106,7 @@ The intent handling lives in `SlackListsCli/Services/NaturalLanguageRouter.cs`. 
 - **Missing scopes**: Add the required scopes and reinstall the app.
 - **List not found**: Ensure the list name matches exactly (case-insensitive).
 - **unknown_method**: Your workspace may not have the Slack Lists API enabled or the app is missing access to Lists.
-- **invalid_arguments**: Check the error details from Slack (the CLI will now show any response metadata) and verify you are using the correct method names for your workspace.
+- **invalid_arguments**: Check the error details from Slack (the CLI will now show any response metadata) and verify the request parameters.
 
 ## License
 
