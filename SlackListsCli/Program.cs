@@ -8,6 +8,22 @@ if (!settings.IsValid)
     return 1;
 }
 
+var diagnoseMode = args.Any(arg => arg.Equals("--diagnose", StringComparison.OrdinalIgnoreCase));
+
+var slackHttpClient = new HttpClient
+{
+    BaseAddress = new Uri("https://slack.com/api/")
+};
+
+var slackClient = new SlackApiClient(slackHttpClient, settings);
+
+if (diagnoseMode)
+{
+    var diagnostics = await slackClient.DiagnoseListsAsync();
+    Console.WriteLine(diagnostics);
+    return 0;
+}
+
 var openAiSettings = OpenAiSettings.FromEnvironment();
 if (!openAiSettings.IsValid)
 {
@@ -22,20 +38,15 @@ if (string.IsNullOrWhiteSpace(question.Question))
     Console.WriteLine("Examples:");
     Console.WriteLine("  slack-lists --question \"How many unresolved items are there in the list Product Launch\"");
     Console.WriteLine("  slack-lists --question \"What is person Y working on\"");
+    Console.WriteLine("  slack-lists --diagnose");
     return 0;
 }
-
-var slackHttpClient = new HttpClient
-{
-    BaseAddress = new Uri("https://slack.com/api/")
-};
 
 var openAiHttpClient = new HttpClient
 {
     BaseAddress = new Uri("https://api.openai.com/v1/")
 };
 
-var slackClient = new SlackApiClient(slackHttpClient, settings);
 var openAiClient = new OpenAiClient(openAiHttpClient, openAiSettings);
 var router = new NaturalLanguageRouter(slackClient, openAiClient);
 

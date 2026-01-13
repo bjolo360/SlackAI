@@ -28,6 +28,18 @@ public sealed class SlackApiClient
         return response.Lists;
     }
 
+    public async Task<string> DiagnoseListsAsync()
+    {
+        var requestUri = BuildRequestUri(ListsListMethod, null);
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _settings.BotToken);
+
+        using var response = await _httpClient.SendAsync(request);
+        var payload = await response.Content.ReadAsStringAsync();
+
+        return $"Status: {(int)response.StatusCode} {response.StatusCode}\n{payload}";
+    }
+
     public async Task<IReadOnlyList<SlackListItem>> GetListItemsAsync(string listId)
     {
         var response = await CallApiAsync<SlackListItemsResponse>(ListsItemsMethod, new Dictionary<string, string>

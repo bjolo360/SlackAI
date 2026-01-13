@@ -70,6 +70,14 @@ dotnet run --project SlackListsCli/SlackListsCli.csproj -- \
   --question "What is person Ada Lovelace working on"
 ```
 
+## Diagnostics
+
+If you see `unknown_method`, run the diagnostic command to print the raw Slack response for `slackLists.list`:
+
+```bash
+dotnet run --project SlackListsCli/SlackListsCli.csproj -- --diagnose
+```
+
 ## Example Output
 
 ```
