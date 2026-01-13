@@ -39,11 +39,11 @@ Set the Slack bot token in your environment:
 export SLACK_BOT_TOKEN="xoxb-your-token"
 ```
 
-Optional: override the Slack Lists API method names if your workspace uses a different namespace (for example, `slackLists.items.list` and `slackLists.items.info`):
+Optional: override the Slack Lists API method names if your workspace uses a different namespace (for example, `slackLists.lists.list` and `slackLists.items.list`):
 
 ```bash
-export SLACK_LISTS_LIST_METHOD="slackLists.items.list"
-export SLACK_LISTS_ITEMS_METHOD="slackLists.items.info"
+export SLACK_LISTS_LIST_METHOD="slackLists.lists.list"
+export SLACK_LISTS_ITEMS_METHOD="slackLists.items.list"
 ```
 
 Set the OpenAI API key and (optionally) choose a model:
@@ -94,7 +94,7 @@ Ada Lovelace is working on:
 The CLI sends your question to ChatGPT to identify the intent and then maps it to Slack API calls:
 
 - `lists.list` to resolve list names.
-- `lists.items` to fetch list items and count unresolved items.
+- `lists.items.list` to fetch list items and count unresolved items.
 - `users.list` to resolve user names.
 
 For "what is person X working on", the tool:

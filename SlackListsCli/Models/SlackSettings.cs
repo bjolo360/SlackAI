@@ -13,7 +13,7 @@ public sealed record SlackSettings(
         var token = Environment.GetEnvironmentVariable("SLACK_BOT_TOKEN") ?? string.Empty;
         var domain = Environment.GetEnvironmentVariable("SLACK_WORKSPACE_DOMAIN") ?? string.Empty;
         var listsListMethod = Environment.GetEnvironmentVariable("SLACK_LISTS_LIST_METHOD") ?? "lists.list";
-        var listsItemsMethod = Environment.GetEnvironmentVariable("SLACK_LISTS_ITEMS_METHOD") ?? "lists.items";
+        var listsItemsMethod = Environment.GetEnvironmentVariable("SLACK_LISTS_ITEMS_METHOD") ?? "lists.items.list";
         return new SlackSettings(token, domain, listsListMethod, listsItemsMethod);
     }
 }
